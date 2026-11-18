@@ -1,0 +1,35 @@
+# Local development
+/docs/
+.idea/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.key
+*-key.pem
+
+# Go binaries, coverage, and profiles
+/bin/
+/dist/
+/tinypod
+/tinypod.exe
+/tinypod-relay
+/tinypod-relay.exe
+/origin
+/origin.exe
+*.test
+coverage.out
+coverage.html
+*.pprof
+
+# Python and Locust
+.coverage
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*_stats.csv
+*_stats_history.csv
+*_failures.csv
+*_exceptions.csv
+/loadtest/results/
