@@ -56,20 +56,21 @@ func serve(ctx context.Context, visitors, agents net.Listener, base *url.URL) er
 	control := server(tunnel.AgentHandler())
 	ctx, stop := context.WithCancel(ctx)
 	defer stop()
-	context.AfterFunc(ctx, func() {
-		tunnel.Close()
-		public.Close()
-		control.Close()
-	})
 	result := make(chan error, 2)
-	go func() { result <- public.Serve(visitors) }()
-	go func() { result <- control.Serve(agents) }()
+	start := func(srv *http.Server, ln net.Listener) {
+		result <- srv.Serve(ln)
+		stop() // Stop the peer if either listener fails.
+	}
+	go start(public, visitors)
+	go start(control, agents)
 	log.Printf("visitor listener %s, tunnel domain %s, agent listener %s", visitors.Addr(), base.Host, agents.Addr())
+	<-ctx.Done()
+	tunnel.Close()
+	public.Close()
+	control.Close()
 	var serveErr error
 	for range 2 {
-		err := <-result
-		stop() // Stop the peer if either listener fails.
-		if !errors.Is(err, http.ErrServerClosed) {
+		if err := <-result; !errors.Is(err, http.ErrServerClosed) {
 			serveErr = errors.Join(serveErr, err)
 		}
 	}
